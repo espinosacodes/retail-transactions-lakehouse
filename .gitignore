@@ -1,0 +1,119 @@
+# ====== Datos del proyecto ======
+data/landing/
+data/bronze/
+data/silver/
+data/gold/
+# Catch-all por si quedan datos sueltos en cualquier carpeta
+*.csv
+*.parquet
+*.tsv
+*.json.gz
+*.xlsx
+
+# ====== Entregables binarios (presentaciones y guiones) ======
+# El repo guarda las fuentes en Markdown; los PDF/DOCX se generan/exportan aparte.
+*.pdf
+*.docx
+*.pptx
+
+# ====== Secretos y credenciales ======
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service_account*.json
+.streamlit/secrets.toml
+.aws/
+.gcloud/
+
+# ====== Python ======
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ====== Entornos virtuales ======
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# ====== Testing / linting / typecheck ======
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# ====== Jupyter ======
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+profile_default/
+ipython_config.py
+
+# ====== Spark ======
+metastore_db/
+spark-warehouse/
+derby.log
+.spark-warehouse/
+
+# ====== Streamlit ======
+.streamlit/cache/
+
+# ====== Logs y temporales ======
+logs/
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# ====== Editores / IDE ======
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# ====== Sistema operativo ======
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ====== Node (por si alguien instala marp u otra cli) ======
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
