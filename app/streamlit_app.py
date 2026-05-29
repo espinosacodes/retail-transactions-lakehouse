@@ -19,7 +19,6 @@ SILVER = ROOT / "data" / "silver"
 
 st.set_page_config(
     page_title="Supermercado · Analítica",
-    page_icon="🛒",
     layout="wide",
 )
 
@@ -54,7 +53,7 @@ def q(sql: str) -> pd.DataFrame:
 # ============================================================
 # Sidebar — filtros globales
 # ============================================================
-st.sidebar.title("🛒 Supermercado")
+st.sidebar.title("Supermercado")
 st.sidebar.caption("Análisis y Modelado Analítico de Transacciones")
 st.sidebar.markdown("**Autores:** Santiago Espinosa · Cristian Molina")
 st.sidebar.divider()
@@ -81,7 +80,7 @@ date_filter_sql = f"date between DATE '{d0}' and DATE '{d1}'"
 
 page = st.sidebar.radio(
     "Sección",
-    options=["📊 Resumen Ejecutivo", "🔬 Visualizaciones Analíticas"],
+    options=["Resumen Ejecutivo", "Visualizaciones Analíticas"],
     index=0,
 )
 
@@ -101,8 +100,8 @@ def filtered(table: str, store_col: str = "store_id", date_col: str = "date") ->
 # ============================================================
 # Página 1 — Resumen Ejecutivo
 # ============================================================
-if page.startswith("📊"):
-    st.title("📊 Resumen Ejecutivo")
+if page == "Resumen Ejecutivo":
+    st.title("Resumen Ejecutivo")
     st.caption(f"Período disponible: **{date_min} → {date_max}** · Tiendas: {', '.join(map(str, stores))}")
 
     if not selected_stores:
@@ -139,7 +138,7 @@ if page.startswith("📊"):
     col_l, col_r = st.columns(2)
 
     with col_l:
-        st.subheader("🏆 Top 10 productos por unidades vendidas")
+        st.subheader("Top 10 productos por unidades vendidas")
         top_p = q(f"""
             select cast(product_id as varchar) as producto,
                    sum(qty) as unidades,
@@ -164,7 +163,7 @@ if page.startswith("📊"):
         st.plotly_chart(fig, use_container_width=True)
 
     with col_r:
-        st.subheader("👥 Top 10 clientes por número de transacciones")
+        st.subheader("Top 10 clientes por número de transacciones")
         top_c = q(f"""
             select cast(customer_id as varchar) as cliente,
                    count(distinct transaction_id) as transacciones,
@@ -191,7 +190,7 @@ if page.startswith("📊"):
     st.divider()
 
     # --- Días pico de compra ---
-    st.subheader("📅 Días pico de compra")
+    st.subheader("Días pico de compra")
     tabs = st.tabs(["Serie de tiempo", "Heatmap diario"])
 
     with tabs[0]:
@@ -236,7 +235,7 @@ if page.startswith("📊"):
     st.divider()
 
     # --- Categorías más "rentables" (volumen + frecuencia) ---
-    st.subheader("🏷️ Categorías más rentables (proxy: volumen y frecuencia)")
+    st.subheader("Categorías más rentables (proxy: volumen y frecuencia)")
     cat_df = q(f"""
         select
             coalesce(c.category_name, '(sin categoría)') as categoria,
@@ -276,7 +275,7 @@ if page.startswith("📊"):
 # Página 2 — Visualizaciones Analíticas
 # ============================================================
 else:
-    st.title("🔬 Visualizaciones Analíticas")
+    st.title("Visualizaciones Analíticas")
     st.caption("Exploración de estructura y comportamiento de los datos.")
 
     if not selected_stores:
@@ -284,7 +283,7 @@ else:
         st.stop()
 
     # --- Serie de tiempo ---
-    st.subheader("📈 Serie de tiempo · Ventas por día y semana")
+    st.subheader("Serie de tiempo · Ventas por día y semana")
     granularity = st.radio("Granularidad", ["Diaria", "Semanal"], horizontal=True)
 
     if granularity == "Diaria":
@@ -311,7 +310,7 @@ else:
     fig.update_layout(height=380, margin=dict(l=10, r=10, t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-    with st.expander("ℹ️ Interpretación"):
+    with st.expander("Interpretación"):
         st.write(
             "Permite identificar **tendencias** (crecimiento o caída sostenida) y "
             "**estacionalidad** (picos recurrentes por día de la semana o por semana del mes). "
@@ -321,7 +320,7 @@ else:
     st.divider()
 
     # --- Boxplot ---
-    st.subheader("📦 Boxplot · Distribución por cliente / categoría")
+    st.subheader("Boxplot · Distribución por cliente / categoría")
     box_dim = st.radio("Distribución de:",
                        ["Unidades por cliente", "Transacciones por cliente",
                         "Unidades por categoría"],
@@ -359,7 +358,7 @@ else:
     fig.update_layout(height=420, margin=dict(l=10, r=10, t=40, b=10), title=title)
     st.plotly_chart(fig, use_container_width=True)
 
-    with st.expander("ℹ️ Interpretación"):
+    with st.expander("Interpretación"):
         st.write(
             "Los **outliers** representan comportamientos atípicos: clientes con compras "
             "muy por encima de la mediana, o categorías que dominan el volumen. "
@@ -371,7 +370,7 @@ else:
     st.divider()
 
     # --- Heatmap de correlación ---
-    st.subheader("🔥 Heatmap · Correlación entre variables de cliente")
+    st.subheader("Heatmap · Correlación entre variables de cliente")
     feats = q("""
         select frequency,
                units_total,
@@ -387,7 +386,7 @@ else:
     fig.update_layout(height=480, margin=dict(l=10, r=10, t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-    with st.expander("ℹ️ Interpretación"):
+    with st.expander("Interpretación"):
         st.write(
             "Variables consideradas: frecuencia (transacciones), volumen total (unidades), "
             "diversidad de productos, diversidad de categorías, tamaño promedio de canasta y "
