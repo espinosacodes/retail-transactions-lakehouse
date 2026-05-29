@@ -140,24 +140,29 @@ if page == "Resumen Ejecutivo":
     with col_l:
         st.subheader("Top 10 productos por unidades vendidas")
         top_p = q(f"""
-            select cast(product_id as varchar) as producto,
-                   sum(qty) as unidades,
-                   count(distinct transaction_id) as transacciones
-            from items
-            where {date_filter_sql} and {store_filter_sql}
-            group by product_id
+            select cast(i.product_id as varchar) as pid,
+                   coalesce(p.category_name, '(sin categoría)') as categoria,
+                   sum(i.qty) as unidades,
+                   count(distinct i.transaction_id) as transacciones
+            from items i
+            left join (select distinct product_id, category_name from dim_product_features) p
+                on i.product_id = p.product_id
+            where {date_filter_sql.replace('date', 'i.date')}
+              and i.store_id in ({','.join(str(s) for s in selected_stores)})
+            group by 1, 2
             order by unidades desc
             limit 10
         """)
-        top_p["producto"] = "Prod " + top_p["producto"].astype(str)
+        top_p["producto"] = "Prod " + top_p["pid"].astype(str) + " · " + top_p["categoria"].astype(str)
         order_p = top_p.sort_values("unidades")["producto"].tolist()
         fig = px.bar(top_p.sort_values("unidades"), x="unidades", y="producto",
                      orientation="h", text="unidades",
                      color="unidades", color_continuous_scale="Blues",
-                     category_orders={"producto": order_p})
+                     category_orders={"producto": order_p},
+                     hover_data={"transacciones": ":,", "categoria": True, "pid": True})
         fig.update_traces(texttemplate="%{text:,}", textposition="outside")
         fig.update_layout(showlegend=False, coloraxis_showscale=False,
-                          yaxis_title="Producto", xaxis_title="Unidades", height=420,
+                          yaxis_title="Producto · Categoría", xaxis_title="Unidades", height=460,
                           margin=dict(l=10, r=10, t=10, b=10),
                           yaxis=dict(type="category"))
         st.plotly_chart(fig, use_container_width=True)
@@ -284,7 +289,10 @@ else:
 
     # --- Serie de tiempo ---
     st.subheader("Serie de tiempo · Ventas por día y semana")
-    granularity = st.radio("Granularidad", ["Diaria", "Semanal"], horizontal=True)
+    col_g, col_m = st.columns(2)
+    granularity = col_g.radio("Granularidad", ["Diaria", "Semanal"], horizontal=True)
+    metric_choice = col_m.radio("Métrica", ["Transacciones", "Unidades", "Ambas (ejes separados)"],
+                                horizontal=True)
 
     if granularity == "Diaria":
         ts = q(f"""
@@ -305,9 +313,39 @@ else:
         """)
         x = "semana"
 
-    fig = px.line(ts, x=x, y=["unidades", "transacciones"],
-                  labels={"value": "Cantidad", x: "Período", "variable": "Métrica"})
-    fig.update_layout(height=380, margin=dict(l=10, r=10, t=10, b=10))
+    if metric_choice == "Transacciones":
+        fig = px.line(ts, x=x, y="transacciones",
+                      labels={x: "Período", "transacciones": "Transacciones"})
+        # marca los 5 días pico
+        top_pts = ts.nlargest(5, "transacciones")
+        fig.add_scatter(x=top_pts[x], y=top_pts["transacciones"],
+                        mode="markers", marker=dict(size=10, color="red"),
+                        name="Top 5 días")
+        fig.update_layout(height=400, margin=dict(l=10, r=10, t=10, b=10),
+                          showlegend=True)
+    elif metric_choice == "Unidades":
+        fig = px.line(ts, x=x, y="unidades",
+                      labels={x: "Período", "unidades": "Unidades"})
+        top_pts = ts.nlargest(5, "unidades")
+        fig.add_scatter(x=top_pts[x], y=top_pts["unidades"],
+                        mode="markers", marker=dict(size=10, color="red"),
+                        name="Top 5 días")
+        fig.update_layout(height=400, margin=dict(l=10, r=10, t=10, b=10),
+                          showlegend=True)
+    else:  # Ambas con ejes separados
+        from plotly.subplots import make_subplots
+        import plotly.graph_objects as go
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Scatter(x=ts[x], y=ts["transacciones"], name="Transacciones",
+                                 line=dict(color="#1f77b4")), secondary_y=False)
+        fig.add_trace(go.Scatter(x=ts[x], y=ts["unidades"], name="Unidades",
+                                 line=dict(color="#ff7f0e")), secondary_y=True)
+        fig.update_yaxes(title_text="Transacciones", secondary_y=False)
+        fig.update_yaxes(title_text="Unidades", secondary_y=True)
+        fig.update_xaxes(title_text="Período")
+        fig.update_layout(height=400, margin=dict(l=10, r=10, t=10, b=10),
+                          legend=dict(orientation="h", y=1.1))
+
     st.plotly_chart(fig, use_container_width=True)
 
     with st.expander("Interpretación"):
