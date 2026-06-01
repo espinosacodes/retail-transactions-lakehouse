@@ -1,16 +1,17 @@
-"""CLI: orquesta bronze → silver → gold."""
+"""CLI: orquesta bronze → silver → gold → models."""
 from __future__ import annotations
 
 import argparse
 import time
 
-from . import bronze, gold, silver
+from . import bronze, gold, models, silver
 
 
 STEPS = {
     "bronze": bronze.run,
     "silver": silver.run,
     "gold": gold.run,
+    "models": models.run,
 }
 
 
